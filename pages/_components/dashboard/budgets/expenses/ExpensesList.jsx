@@ -5,23 +5,22 @@ import { Trash } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 
-
-
-function ExpensesListTable({
-  expItem,
-  refreshData,
-}) {
+function ExpensesListTable({ expItem = [], refreshData }) { // Default to an empty array if expItem is undefined
   const deleteExpense = async (exp) => {
-    // Specify the type for 'exp'
-    const result = await db
-      .delete(Expenses)
-      .where(eq(Expenses.id, exp.id))
-      .returning();
+    try {
+      const result = await db
+        .delete(Expenses)
+        .where(eq(Expenses.id, exp.id))
+        .returning();
 
-    if (result) {
-      console.log(result);
-      toast("Expense Deleted!");
-      refreshData();
+      if (result) {
+        console.log(result);
+        toast("Expense Deleted!");
+        refreshData();
+      }
+    } catch (error) {
+      console.error("Error deleting expense:", error);
+      toast.error("Failed to delete expense.");
     }
   };
 
@@ -33,19 +32,25 @@ function ExpensesListTable({
         <h2>Date</h2>
         <h1>Action</h1>
       </div>
-      {expItem.map((exp, index) => (
-        <div className="grid grid-cols-4 bg-slate-100 p-2" key={index}>
-          <h2>{exp.name}</h2>
-          <h2>{exp.amount}</h2>
-          <h2>{exp.createdAt}</h2>
-          <h2>
-            <Trash
-              className="cursor-pointer"
-              onClick={() => deleteExpense(exp)}
-            />
-          </h2>
+      {expItem.length > 0 ? (
+        expItem.map((exp, index) => (
+          <div className="grid grid-cols-4 bg-slate-100 p-2" key={index}>
+            <h2>{exp.name || "N/A"}</h2>
+            <h2>{exp.amount || "N/A"}</h2>
+            <h2>{exp.createdAt || "N/A"}</h2>
+            <h2>
+              <Trash
+                className="cursor-pointer"
+                onClick={() => deleteExpense(exp)}
+              />
+            </h2>
+          </div>
+        ))
+      ) : (
+        <div className="p-2">
+          <h2>No expenses found</h2>
         </div>
-      ))}
+      )}
     </div>
   );
 }
